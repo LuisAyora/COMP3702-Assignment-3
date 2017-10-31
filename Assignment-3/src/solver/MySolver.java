@@ -56,5 +56,46 @@ public class MySolver implements FundingAllocationAgent {
 
 		return additionalFunding;
 	}
+	
+	
+	private static Matrix genTransFunction(Matrix m) {
+		double[][] out = new double[m.getNumRows()][m.getNumCols()];
+		for(int i = 0; i < m.getNumRows(); i++) {
+			for(int j = 0; j < m.getNumCols(); j++) {
+				if(j == 0) 
+					out[i][j] = sumRow(m.getRow(i), i);
+				else if(j <= i)
+					out[i][j] = m.get(i, i - j);
+				else
+					out[i][j] = 0;
+			}
+		}
+		return new Matrix(out);
+		
+	}
+	
+	private static double sumRow(List<Double> row, int index) {
+		double sum = 0;
+		for(int i = index; i < row.size(); i++)
+			sum += row.get(i);
+		return sum;
+	}
+	
+	public static void main(String[] args) {
+		double[][] mat = new double[][] { { 0.2, 0.2, 0.2, 0.2, 0.2 },
+						 { 0.2, 0.2, 0.2, 0.1, 0.3 },
+						 { 0.2, 0.2, 0.2, 0.1, 0.3 },
+						 { 0.2, 0.2, 0.2, 0.1, 0.3 },
+						 { 0.2, 0.2, 0.2, 0.1, 0.3 }
+					   };
+		
+		Matrix m = new Matrix(mat);
+
+		Matrix T = genTransFunction(m);
+		for(int i = 0; i < T.getNumRows(); i++)
+			System.out.println(T.getRow(i).toString());
+		
+	}
+
 
 }
