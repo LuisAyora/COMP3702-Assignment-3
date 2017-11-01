@@ -143,23 +143,19 @@ public class MySolver implements FundingAllocationAgent {
 					statePrime.get(i));
 		return prob;
 	}
+	
+	public List<int []> getCombinations3(int maxSum){
+		List<int []> combinations = new ArrayList<int []>();
+		for (int i=0;i<=maxSum;i++) {
+			for (int j=0;j<=maxSum-i;j++) {
+				for (int k=0; k <=maxSum-i-j; k++) {
+					int[] sublist = {i,j,k};
+					combinations.add(sublist);
+					//System.out.println(sublist);
+				}
+			}
+		}
+		return combinations;
+	}
 }
 
-int i=0;
-int j=0;
-int k=0;
-int numMax = 5;
-List<ArrayList<Integer>>Number = new ArrayList<ArrayList<Integer>>();	
-//List<Integer>Number=new ArrayList<Integer>();
-
-for (i=0;i<=numMax;i++) {
-	for (j=0;j<=numMax-i;j++) {
-		for (k=0; k <=numMax-i-j; k++) {
-			ArrayList<Integer>sublist=new ArrayList<Integer>();
-			//ArrayList<Integer> sublist = new ArrayList<ArrayList<Integer>>();
-			sublist.add(i);
-			sublist.add(j);
-			sublist.add(k);
-			Number.add(sublist);
-			System.out.println(sublist);
-	}
