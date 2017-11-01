@@ -19,11 +19,13 @@ public class MySolver implements FundingAllocationAgent {
 	private ProblemSpec spec = new ProblemSpec();
 	private VentureManager ventureManager;
     private List<Matrix> probabilities;
+    private List<Matrix> transitions;
 	
 	public MySolver(ProblemSpec spec) throws IOException {
 	    this.spec = spec;
 		ventureManager = spec.getVentureManager();
         probabilities = spec.getProbabilities();
+        transitions = getTransitions(probabilities);
 	}
 	
 	public void doOfflineComputation() {
@@ -72,6 +74,19 @@ public class MySolver implements FundingAllocationAgent {
 		}
 		return new Matrix(out);
 		
+	}
+	
+	/**
+	 * Transforms the probability matrices into transition matrices
+	 * @param probs
+	 * @return
+	 */
+	private List<Matrix> getTransitions(List<Matrix>probs){
+		List<Matrix> output = new ArrayList<Matrix>();
+		for (int i =0;i<probs.size();i++) {
+			output.add(genTransFunction(probs.get(i)));
+		}
+		return output;
 	}
 	
 	private static double sumRow(List<Double> row, int index) {
@@ -141,31 +156,6 @@ public class MySolver implements FundingAllocationAgent {
 			prob *= probabilities.get(i).get(state[i] + action[i],
 					statePrime[i]);
 		return prob;
-	}
-	
-	public List<int []> getCombinations3(int maxSum){
-		List<int []> combinations = new ArrayList<int []>();
-		for (int i=0;i<=maxSum;i++) {
-			for (int j=0;j<=maxSum-i;j++) {
-				for (int k=0; k <=maxSum-i-j; k++) {
-					int[] sublist = {i,j,k};
-					combinations.add(sublist);
-					//System.out.println(sublist);
-				}
-			}
-		}
-		return combinations;
-	}
-	
-	public List<int []> getCominations2(int maxSum) {
-		List<int []> combinations = new ArrayList<int []>();
-		for(int i = 0; i <= maxSum; i++) {
-			for(int j = 0; j <= maxSum - i; j++) {
-				int [] action = { i, j };
-				combinations.add(action);
-			}
-		}
-		return combinations;
 	}
 	
 	public ArrayList<int []> getActions(ProblemSpec spec) {
