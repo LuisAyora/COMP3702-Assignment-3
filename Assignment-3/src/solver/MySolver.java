@@ -8,6 +8,7 @@ package solver;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import problem.VentureManager;
@@ -20,12 +21,18 @@ public class MySolver implements FundingAllocationAgent {
 	private VentureManager ventureManager;
     private List<Matrix> probabilities;
     private List<Matrix> transitions;
-	
+    private List<int[]> states;
+    private List<int[]> actions;
+    private HashMap<int[],int[]> validActions;
+    
 	public MySolver(ProblemSpec spec) throws IOException {
 	    this.spec = spec;
 		ventureManager = spec.getVentureManager();
         probabilities = spec.getProbabilities();
         transitions = getTransitions(probabilities);
+        states = getCombinations(ventureManager.getMaxManufacturingFunds());
+        actions = getCombinations(ventureManager.getMaxAdditionalFunding());
+        validActions = getValidActions();
 	}
 	
 	public void doOfflineComputation() {
@@ -158,21 +165,20 @@ public class MySolver implements FundingAllocationAgent {
 		return prob;
 	}
 	
-	public ArrayList<int []> getActions(ProblemSpec spec) {
+	public ArrayList<int []> getCombinations(int maxNum) {
 		ArrayList<int []> actions = new ArrayList<int []>();
-		int max = spec.getVentureManager().getMaxAdditionalFunding();
 		if(spec.getProbabilities().size() == 2) {
-			for(int i = 0; i <= max; i++) {
-				for(int j = 0; j <= max - i; j++) {
+			for(int i = 0; i <= maxNum; i++) {
+				for(int j = 0; j <= maxNum - i; j++) {
 					int [] action = { i, j };
 					actions.add(action);
 				}
 			}
 		}
 		else if(spec.getProbabilities().size() == 3) {
-			for(int i = 0; i <= max; i++) {
-				for(int j = 0; j <= max - i; j++) {
-					for(int k = 0; k <= max - i - j; k++) {
+			for(int i = 0; i <= maxNum; i++) {
+				for(int j = 0; j <= maxNum - i; j++) {
+					for(int k = 0; k <= maxNum - i - j; k++) {
 						int [] action = { i, j, k };
 						actions.add(action);
 					}
@@ -180,6 +186,40 @@ public class MySolver implements FundingAllocationAgent {
 			}
 		}
 		return actions;
+	}
+	
+	/**
+	 * Obtains map of the mapping of valid actions indeces per state
+	 * @return HashMap
+	 */
+	private HashMap<int[],int[]>  getValidActions(){
+		HashMap<int[],int[]> mapp= new HashMap<int[],int[]>();
+		for (int i = 0;i<states.size();i++) {
+			List<Integer> act= new ArrayList<Integer>();
+			for (int j = 0; j < actions.size(); j++) {
+				if (isActionValid(states.get(i), actions.get(j))) 
+					act.add(j);
+			}
+			int [] acts = new int[act.size()];
+			for (int k =0;k<acts.length;k++)
+				acts[k] = act.get(k);
+			mapp.put(states.get(i),acts);
+		}
+		return mapp;
+	}
+	
+	/**
+	 * Checks if an action is valid given an state
+	 * @param state current state
+	 * @param action action given
+	 * @return if validity
+	 */
+	private boolean isActionValid(int[] state,int[] action) {
+		int sum = arrayElementSum(sumArray(state,action));
+		if (sum>ventureManager.getMaxManufacturingFunds()) {
+			return false;
+		}
+		return true;
 	}
 }
 

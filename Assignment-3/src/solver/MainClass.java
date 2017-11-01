@@ -14,14 +14,5 @@ public class MainClass {
 		double prob = mySolver.getReward(prevState, action);
 		System.out.println("Reward for s="+Arrays.toString(prevState)+" and a="+Arrays.toString(action)+" is: "+Double.toString(prob));
 		//System.out.println(x);
-		
-		ProblemSpec problem = new ProblemSpec();
-		problem.loadInputFile("testcases/platinum1.txt");
-		MySolver solver = new MySolver(problem);
-		
-		ArrayList<int []> actions = solver.getActions(problem);
-		System.out.println(Integer.toString(actions.size()));
-		for(int i = 0; i < actions.size(); i++)
-			System.out.println(Arrays.toString(actions.get(i)));
 	}
 }
