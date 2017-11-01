@@ -8,6 +8,8 @@ package solver;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -23,7 +25,11 @@ public class MySolver implements FundingAllocationAgent {
     private List<Matrix> transitions;
     private List<int[]> states;
     private List<int[]> actions;
+    private List<int[]> optimalPolicy;
     private HashMap<int[],int[]> validActions;
+    private HashMap<int[],Integer> indecesMap;
+    private double maxError;
+    private double convThreshold;
     
 	public MySolver(ProblemSpec spec) throws IOException {
 	    this.spec = spec;
@@ -33,6 +39,11 @@ public class MySolver implements FundingAllocationAgent {
         states = getCombinations(ventureManager.getMaxManufacturingFunds());
         actions = getCombinations(ventureManager.getMaxAdditionalFunding());
         validActions = obtainValidActions();
+        indecesMap = obtainIndecesMap();
+        double[] uValues = valueIteration();
+        optimalPolicy = this.obtainPolicy(uValues);
+        maxError = 1e-7;
+        convThreshold = maxError*(1-spec.getDiscountFactor())/spec.getDiscountFactor();
 	}
 	
 	public void doOfflineComputation() {
@@ -66,7 +77,98 @@ public class MySolver implements FundingAllocationAgent {
 		return additionalFunding;
 	}
 	
+	/**
+	 *  Value iteration algorithm
+	 * @return
+	 */
+	public double[] valueIteration(){
+		double [] u =new double[this.states.size()];
+		double [] uDash =new double[this.states.size()];
+		do {
+			u = uDash;
+			//Iterate over all states
+			for (int i = 0;i < states.size(); i++) {
+				double maxim = Double.NEGATIVE_INFINITY;
+				//Iterate over actions and initiate maximum
+				for (int a : validActions.get(states.get(i))) {
+					//a is indeces of valid actions
+					double summation = 0;
+					for (int j = 0; j<states.size(); i++) {
+						summation += u[j]*transitionFunction(transitions,
+								states.get(i), actions.get(a), states.get(j));
+					}
+					double candidate = getReward(states.get(i), actions.get(a))+
+							spec.getDiscountFactor()*summation;
+					if (candidate > maxim)
+						maxim = candidate;
+				}
+				uDash[i] = maxim;
+				//Assign maximum to ith state
+			}
+		}while(vectDist(u,uDash)<convThreshold);
+		return uDash;
+	}
 	
+	/**
+	 * Obtains the optimal actions given Long term reward values
+	 * @param u
+	 * @return
+	 */
+	public List<int[]> obtainPolicy(double [] u){
+		List<int[]> policyActions = new ArrayList<int[]>(states.size());
+		for (int i = 0;i < states.size(); i++) {
+			double maxim = Double.NEGATIVE_INFINITY;
+			int [] action = new int[this.ventureManager.getNumVentures()];
+			//Iterate over actions and initiate maximum
+			for (int a : validActions.get(states.get(i))) {
+				//a is indeces of valid actions
+				double summation = 0;
+				for (int j = 0; j<states.size(); i++) {
+					summation += u[j]*transitionFunction(transitions,
+							states.get(i), actions.get(a), states.get(j));
+				}
+				double candidate = getReward(states.get(i), actions.get(a))+
+						spec.getDiscountFactor()*summation;
+				if (candidate > maxim)
+					maxim = candidate;
+					action = actions.get(a);
+			}
+			policyActions.add(i,action);
+			//Assign maximum to ith state
+		}
+		return policyActions;
+	}
+	
+	
+	/**
+	 * Obtains Distance as maximum difference
+	 * @param a first vector
+	 * @param b second vector
+	 * @return total - Manhattan distance
+	 */
+	private double vectDist(double[] a,double[] b) {		
+		return Arrays.stream(absVectDiff(a,b)).max().getAsDouble();
+	}
+	
+	/**
+	 * Gets absolute value of the difference between two lists
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	private double[] absVectDiff(double[] a,double[] b) {
+		double [] result = new double[a.length];
+		for (int i = 0; i < a.length; i++) {
+			result[i] = Math.abs(a[i]-b[i]);
+		}
+		return result;
+	}
+	
+	/**
+	 * Obtains a transformed matrix from the original ones
+	 * @param m-probabilities matrix
+	 * @return
+	 */
 	public static Matrix genTransFunction(Matrix m) {
 		double[][] out = new double[m.getNumRows()][m.getNumCols()];
 		for(int i = 0; i < m.getNumRows(); i++) {
@@ -148,7 +250,7 @@ public class MySolver implements FundingAllocationAgent {
 		return out;
 	}
 	
-
+	
 	public int arrayElementSum(int[] arr1) {
 		int out = 0;
 		for (int i = 0;i<arr1.length;i++) {
@@ -206,6 +308,18 @@ public class MySolver implements FundingAllocationAgent {
 			mapp.put(states.get(i),acts);
 		}
 		return mapp;
+	}
+	
+	/**
+	 * Returns hashmap that maps from states to their index
+	 * @return indMap HashMap<int[],Integer>
+	 */
+	private HashMap<int[],Integer> obtainIndecesMap(){
+		HashMap<int[],Integer> indMap = new HashMap<int[],Integer>();
+		for (int i = 0; i<this.states.size(); i++) {
+			indMap.put(states.get(i), i);
+		}
+		return indMap;
 	}
 	
 	/**
