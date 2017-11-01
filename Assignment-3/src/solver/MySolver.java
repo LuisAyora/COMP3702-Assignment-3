@@ -80,55 +80,6 @@ public class MySolver implements FundingAllocationAgent {
 			sum += row.get(i);
 		return sum;
 	}
-	
-	public static void main(String[] args) {
-		double[][] mat1 = new double[][] { { 0.2, 0.2, 0.2, 0.2, 0.2 },
-						 { 0.2, 0.2, 0.2, 0.1, 0.3 },
-						 { 0.2, 0.2, 0.2, 0.1, 0.3 },
-						 { 0.2, 0.2, 0.2, 0.1, 0.3 },
-						 { 0.2, 0.2, 0.2, 0.1, 0.3 }
-					   };
-		double[][] mat2 = new double[][] { { 0.3, 0.2, 0.2, 0.1, 0.2 },
-							 { 0.3, 0.2, 0.2, 0.1, 0.2 },
-							 { 0.3, 0.2, 0.2, 0.1, 0.2 },
-							 { 0.3, 0.2, 0.2, 0.1, 0.2 },
-							 { 0.3, 0.2, 0.2, 0.1, 0.2 }
-						   };
-		
-		Matrix m1 = new Matrix(mat1);
-		Matrix m2 = new Matrix(mat2);
-
-		Matrix T1 = genTransFunction(m1);
-		for(int i = 0; i < T1.getNumRows(); i++)
-			System.out.println(T1.getRow(i).toString());
-		System.out.println("");
-		Matrix T2 = genTransFunction(m1);
-		for(int i = 0; i < T2.getNumRows(); i++)
-			System.out.println(T1.getRow(i).toString());
-		System.out.println("");
-		
-		ArrayList<Integer> state = new ArrayList<Integer>();
-		state.add(2);
-		state.add(1);
-		
-		ArrayList<Integer> action = new ArrayList<Integer>();
-		action.add(1);
-		action.add(0);
-		
-		ArrayList<Integer> statePrime = new ArrayList<Integer>();
-		statePrime.add(1);
-		statePrime.add(0);
-		
-		ArrayList<Matrix> probabilities = new ArrayList<Matrix>();
-		probabilities.add(T1);
-		probabilities.add(T2);
-		
-		double prob = transitionFunction(probabilities, state, action,
-				statePrime);
-		System.out.println(Double.toString(prob));
-		
-	}
-
 
 	/**
 	 * Obtains Reward of a state action pair
@@ -172,12 +123,11 @@ public class MySolver implements FundingAllocationAgent {
 	}
 	
 	private static double transitionFunction(List<Matrix> probabilities, 
-			List<Integer> state, List<Integer> action, 
-			List<Integer> statePrime) {
+			int[] state, int[] action, int[] statePrime) {
 		double prob = 1;
 		for(int i = 0; i < probabilities.size(); i++)
-			prob *= probabilities.get(i).get(state.get(i) + action.get(i),
-					statePrime.get(i));
+			prob *= probabilities.get(i).get(state[i] + action[i],
+					statePrime[i]);
 		return prob;
 	}
 }
