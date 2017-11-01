@@ -135,12 +135,11 @@ public class MySolver implements FundingAllocationAgent {
 		return out;
 	}
 	public double transitionFunction(List<Matrix> probabilities, 
-			List<Integer> state, List<Integer> action, 
-			List<Integer> statePrime) {
+			int[] state, int[] action, int[] statePrime) {
 		double prob = 1;
 		for(int i = 0; i < probabilities.size(); i++)
-			prob *= probabilities.get(i).get(state.get(i) + action.get(i),
-					statePrime.get(i));
+			prob *= probabilities.get(i).get(state[i] + action[i],
+					statePrime[i]);
 		return prob;
 	}
 	
