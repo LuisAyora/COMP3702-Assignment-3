@@ -29,10 +29,10 @@ public class MySolver implements FundingAllocationAgent {
 	    this.spec = spec;
 		ventureManager = spec.getVentureManager();
         probabilities = spec.getProbabilities();
-        transitions = getTransitions(probabilities);
+        transitions = obtainTransitions(probabilities);
         states = getCombinations(ventureManager.getMaxManufacturingFunds());
         actions = getCombinations(ventureManager.getMaxAdditionalFunding());
-        validActions = getValidActions();
+        validActions = obtainValidActions();
 	}
 	
 	public void doOfflineComputation() {
@@ -88,7 +88,7 @@ public class MySolver implements FundingAllocationAgent {
 	 * @param probs
 	 * @return
 	 */
-	private List<Matrix> getTransitions(List<Matrix>probs){
+	private List<Matrix> obtainTransitions(List<Matrix>probs){
 		List<Matrix> output = new ArrayList<Matrix>();
 		for (int i =0;i<probs.size();i++) {
 			output.add(genTransFunction(probs.get(i)));
@@ -192,7 +192,7 @@ public class MySolver implements FundingAllocationAgent {
 	 * Obtains map of the mapping of valid actions indeces per state
 	 * @return HashMap
 	 */
-	private HashMap<int[],int[]>  getValidActions(){
+	private HashMap<int[],int[]>  obtainValidActions(){
 		HashMap<int[],int[]> mapp= new HashMap<int[],int[]>();
 		for (int i = 0;i<states.size();i++) {
 			List<Integer> act= new ArrayList<Integer>();
@@ -221,5 +221,18 @@ public class MySolver implements FundingAllocationAgent {
 		}
 		return true;
 	}
+	
+	//Queries 
+	
+	public List<int[]> getStates() {
+		return states;
+	}
+	
+	public List<int[]> getActions(){
+		return actions;
+	}
+	
+	public HashMap<int[],int[]> getValidActions(){
+		return validActions;
+	}
 }
-
