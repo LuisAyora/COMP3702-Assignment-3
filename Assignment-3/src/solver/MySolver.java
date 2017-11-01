@@ -107,6 +107,9 @@ public class MySolver implements FundingAllocationAgent {
 	 */
 	public double getReward(int[] state, int[] action) {
 		int newState[]=sumArray(state,action);
+		if (arrayElementSum(newState)>this.ventureManager.getMaxManufacturingFunds()) {
+			throw new IllegalArgumentException("Action not Valid for given state at getReward(state,action)");
+		}
 		double totalFortnightReward = 0;
 		for (int w =0;w<ventureManager.getNumVentures();w++ ) {
 			double individualExpected = 0;
@@ -135,6 +138,14 @@ public class MySolver implements FundingAllocationAgent {
 		int out[]=new int[arr1.length];
 		for (int i = 0;i<arr1.length;i++) {
 			out[i] = arr1[i]+arr2[i];
+		}
+		return out;
+	}
+	
+	public int arrayElementSum(int[] arr1) {
+		int out = 0;
+		for (int i = 0;i<arr1.length;i++) {
+			out += arr1[i];
 		}
 		return out;
 	}
