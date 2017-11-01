@@ -156,5 +156,40 @@ public class MySolver implements FundingAllocationAgent {
 		}
 		return combinations;
 	}
+	
+	public List<int []> getCominations2(int maxSum) {
+		List<int []> combinations = new ArrayList<int []>();
+		for(int i = 0; i <= maxSum; i++) {
+			for(int j = 0; j <= maxSum - i; j++) {
+				int [] action = { i, j };
+				combinations.add(action);
+			}
+		}
+		return combinations;
+	}
+	
+	public ArrayList<int []> getActions(ProblemSpec spec) {
+		ArrayList<int []> actions = new ArrayList<int []>();
+		int max = spec.getVentureManager().getMaxAdditionalFunding();
+		if(spec.getProbabilities().size() == 2) {
+			for(int i = 0; i <= max; i++) {
+				for(int j = 0; j <= max - i; j++) {
+					int [] action = { i, j };
+					actions.add(action);
+				}
+			}
+		}
+		else if(spec.getProbabilities().size() == 3) {
+			for(int i = 0; i <= max; i++) {
+				for(int j = 0; j <= max - i; j++) {
+					for(int k = 0; k <= max - i - j; k++) {
+						int [] action = { i, j, k };
+						actions.add(action);
+					}
+				}
+			}
+		}
+		return actions;
+	}
 }
 
