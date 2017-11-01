@@ -1,9 +1,14 @@
 package problem;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import problem.VentureManager;
+import problem.ProblemSpec;
 
 public class TestingFor {
+	public ProblemSpec spec = new ProblemSpec();
+	public VentureManager ventureManager1;
 	
 	public static void main(String[] args) {
 	
