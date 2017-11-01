@@ -37,5 +37,8 @@ public class Matrix {
 	public int getNumCols() {
 		return numCols;
 	}
+<<<<<<< HEAD
 
+=======
+>>>>>>> Fausto
 }

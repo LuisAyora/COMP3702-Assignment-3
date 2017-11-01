@@ -98,4 +98,44 @@ public class MySolver implements FundingAllocationAgent {
 	}
 
 
+	/**
+	 * Obtains Reward of a state action pair
+	 * @precondition size of state and action needs to be the same, problem already loaded
+	 * @param state
+	 * @param action
+	 * @return reward defined as expected profit
+	 */
+	public double getReward(int[] state, int[] action) {
+		int newState[]=sumArray(state,action);
+		double totalFortnightReward = 0;
+		for (int w =0;w<ventureManager.getNumVentures();w++ ) {
+			double individualExpected = 0;
+			for (int i = 0; i < probabilities.get(w).getNumCols(); i++) {
+				int sold = Math.min(newState[w], i);
+	            individualExpected += (sold-1) * spec.getSalePrices().get(w) *
+	            		0.6 * probabilities.get(w).get(newState[w], i);
+	            
+	            int missed = i - sold;
+	            individualExpected -= missed * spec.getSalePrices().get(w) 
+	            		* 0.25 * probabilities.get(w).get(newState[w], i);
+			}
+			totalFortnightReward += individualExpected;
+		}
+			
+		return totalFortnightReward;
+	}
+	
+	/**
+	 *  Sums two integer arrays
+	 * @param arr1: first array
+	 * @param arr2: second array
+	 * @return  arr1+arr2
+	 */
+	public int[] sumArray(int[] arr1,int[] arr2) {
+		int out[]=new int[arr1.length];
+		for (int i = 0;i<arr1.length;i++) {
+			out[i] = arr1[i]+arr2[i];
+		}
+		return out;
+	}
 }
