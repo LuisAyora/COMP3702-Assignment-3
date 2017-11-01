@@ -144,7 +144,7 @@ public class MySolver implements FundingAllocationAgent {
 			double individualExpected = 0;
 			for (int i = 0; i < probabilities.get(w).getNumCols(); i++) {
 				int sold = Math.min(newState[w], i);
-	            individualExpected += (sold-1) * spec.getSalePrices().get(w) *
+	            individualExpected += (sold) * spec.getSalePrices().get(w) *
 	            		0.6 * probabilities.get(w).get(newState[w], i);
 	            
 	            int missed = i - sold;
