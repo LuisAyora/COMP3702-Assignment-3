@@ -58,7 +58,7 @@ public class MySolver implements FundingAllocationAgent {
 	}
 	
 	
-	private static Matrix genTransFunction(Matrix m) {
+	public static Matrix genTransFunction(Matrix m) {
 		double[][] out = new double[m.getNumRows()][m.getNumCols()];
 		for(int i = 0; i < m.getNumRows(); i++) {
 			for(int j = 0; j < m.getNumCols(); j++) {
@@ -81,22 +81,6 @@ public class MySolver implements FundingAllocationAgent {
 		return sum;
 	}
 	
-	public static void main(String[] args) {
-		double[][] mat = new double[][] { { 0.2, 0.2, 0.2, 0.2, 0.2 },
-						 { 0.2, 0.2, 0.2, 0.1, 0.3 },
-						 { 0.2, 0.2, 0.2, 0.1, 0.3 },
-						 { 0.2, 0.2, 0.2, 0.1, 0.3 },
-						 { 0.2, 0.2, 0.2, 0.1, 0.3 }
-					   };
-		
-		Matrix m = new Matrix(mat);
-
-		Matrix T = genTransFunction(m);
-		for(int i = 0; i < T.getNumRows(); i++)
-			System.out.println(T.getRow(i).toString());
-		
-	}
-
 
 	/**
 	 * Obtains Reward of a state action pair
@@ -142,11 +126,21 @@ public class MySolver implements FundingAllocationAgent {
 		return out;
 	}
 	
+
 	public int arrayElementSum(int[] arr1) {
 		int out = 0;
 		for (int i = 0;i<arr1.length;i++) {
 			out += arr1[i];
 		}
 		return out;
+	}
+	public double transitionFunction(List<Matrix> probabilities, 
+			List<Integer> state, List<Integer> action, 
+			List<Integer> statePrime) {
+		double prob = 1;
+		for(int i = 0; i < probabilities.size(); i++)
+			prob *= probabilities.get(i).get(state.get(i) + action.get(i),
+					statePrime.get(i));
+		return prob;
 	}
 }
