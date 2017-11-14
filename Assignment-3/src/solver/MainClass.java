@@ -9,11 +9,11 @@ import java.util.List;
 public class MainClass {
 	public static void main(String args[]) throws IOException{
 		ProblemSpec probSpec=new ProblemSpec();
-		probSpec.loadInputFile("testcases/platinum1.txt");
+		probSpec.loadInputFile("testcases/platinum_eg1.txt");
 		MySolver mySolver = new MySolver(probSpec);
 		mySolver.doOfflineComputation();
 		//System.out.println(mySolver.getOptimalPolicy());
-		for(List<Integer> key : mySolver.getOptimalPolicy().keySet())
+		for(List<Integer> key : mySolver.getStates())
 			System.out.println(key + " - " +
 				mySolver.getOptimalPolicy().get(key));	
 		int count = 0;

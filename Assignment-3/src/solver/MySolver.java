@@ -9,7 +9,6 @@ package solver;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -42,19 +41,18 @@ public class MySolver implements FundingAllocationAgent {
         actions = getCombinations(ventureManager.getMaxAdditionalFunding());
         validActions = obtainValidActions();
         futureRewards = generateRewards();
-        //uValueIter = this.valueIteration();
-        maxError = 0.1;
-        //maxError = 1e-7;
+        maxError = 1e-7;
         convThreshold = maxError;//*(1-spec.getDiscountFactor())/spec.getDiscountFactor();
         rewards = genRewards();
 	}
 	
 	public void doOfflineComputation() {
 	    // TODO Write your own code here.
+		long time = System.currentTimeMillis();
 		double [] utilities = valueIteration();
 		optimalPolicy = obtainPolicy(utilities);
-		//System.out.println(Arrays.toString(utilities));
-		//optimalPolicy = policyIteration();
+		time = System.currentTimeMillis() - time;
+		System.out.println("Computation time: " + time);
 
 	}
 	
@@ -65,24 +63,6 @@ public class MySolver implements FundingAllocationAgent {
 
 		return optimalPolicy.get(manufacturingFunds);
 
-		/*List<Integer> additionalFunding = new ArrayList<Integer>();
-
-		int totalManufacturingFunds = 0;
-		for (int i : manufacturingFunds) {
-			totalManufacturingFunds += i;
-		}
-		
-		int totalAdditional = 0;
-		for (int i = 0; i < ventureManager.getNumVentures(); i++) {
-			if (totalManufacturingFunds >= ventureManager.getMaxManufacturingFunds() ||
-			        totalAdditional >= ventureManager.getMaxAdditionalFunding()) {
-				additionalFunding.add(0);
-			} else {
-				additionalFunding.add(1);
-				totalAdditional ++;
-				totalManufacturingFunds ++;
-			}
-		}*/
 	}
 	
 	/**
@@ -117,58 +97,12 @@ public class MySolver implements FundingAllocationAgent {
 			}
 			counter ++;
 			dist = vectDist(u,uDash);
-			/*System.out.println("u: \n"+Arrays.toString(u)+"\n");
-			System.out.println("u: \n"+Arrays.toString(uDash)+"\n");
-			System.out.println("Max Distance : "+Double.toString(dist)+"\n");*/
-		}while(dist>1e-7);
+		}while(dist>convThreshold);
 		System.out.println("Number Of Iterations till convergence: "+Integer.toString(counter)+"\n");
 		return uDash;
 	}
 	
-	public double[] valIteration() {
-		double[] uVectDash = new double[states.size()];
-		double[] uVect = new double[states.size()];
-		double delta;
-		int counter = 0;
-		System.out.println(Integer.toString(uVect.length));
-		do {
-			uVect = Arrays.copyOf(uVectDash, uVectDash.length);
-			delta = 0;
-			// Iterate over State Space
-			for(List<Integer> s : states) {
-				double maxVal = Double.NEGATIVE_INFINITY;
-				// Iterate for all valid actions of state
-				for(int a : validActions.get(s)) {
-					double sum = 0;
-					// Iterate over State Space
-					for(List<Integer> sDash : states) {
-						sum += transitionFunction(transitions, s, 
-								actions.get(a), sDash) * 
-								uVect[states.indexOf(sDash)];
-					}
-					// Compare utilities and update
-					if(sum >= maxVal) {
-						maxVal = sum;
-						uVectDash[states.indexOf(s)] = immediateReward(s, 
-								actions.get(a)) + (spec.getDiscountFactor() *
-								sum);
-					}
-				}
-				if(Math.abs(uVectDash[states.indexOf(s)] -
-				    uVect[states.indexOf(s)]) > delta) {
-					delta = Math.abs(uVectDash[states.indexOf(s)] - 
-							uVect[states.indexOf(s)]);
-				}
-			}
-			System.out.println("Iteration " + counter);
-			System.out.println(Arrays.toString(uVect));
-			System.out.println(Arrays.toString(uVectDash));
-			System.out.println("Current delta: " + delta);
-			counter++;
-		} while(counter < 2);// (maxError * (1 - spec.getDiscountFactor())/
-				//spec.getDiscountFactor()));
-		return uVect;
-	}
+	
 	
 	/**
 	 * Obtains the optimal actions given Long term reward values
@@ -179,7 +113,7 @@ public class MySolver implements FundingAllocationAgent {
 		HashMap<List<Integer>, List<Integer>> optimalPolicy = new 
 				HashMap<List<Integer>, List<Integer>>();
 		for(List<Integer> s : states) {
-			double max = 0.0;
+			double max = Double.NEGATIVE_INFINITY;
 			for(int a : validActions.get(s)) {
 				double sum = 0.0;
 				for(List<Integer> sDash : states) 
@@ -315,19 +249,6 @@ public class MySolver implements FundingAllocationAgent {
 		return out;
 	}
 	
-	/**
-	 * Gets absolute value of the difference between two lists
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	private double[] absVectDiff(double[] a,double[] b) {
-		double [] result = new double[a.length];
-		for (int i = 0; i < a.length; i++) {
-			result[i] = Math.abs(a[i]-b[i]);
-		}
-		return result;
-	}
 	
 	/**
 	 * Obtains a transformed matrix from the original ones
@@ -371,37 +292,14 @@ public class MySolver implements FundingAllocationAgent {
 	}
 	
 
+	
 	/**
-	 * Obtains Reward of a state action pair
-	 * @precondition size of state and action needs to be the same, problem already loaded
+	 * Gets a single the Reward given a state and an action
 	 * @param state
 	 * @param action
-	 * @return reward defined as expected profit
+	 * @return double reward
 	 */
 	public double getReward(List<Integer> state, List<Integer> action) {
-		List<Integer> newState=sumLists(state,action);
-		if (listElementSum(newState)>this.ventureManager.getMaxManufacturingFunds()) {
-			throw new IllegalArgumentException("Action not Valid for given state at getReward(state,action)");
-		}
-		double totalFortnightReward = 0;
-		for (int w =0;w<ventureManager.getNumVentures();w++ ) {
-			double individualExpected = 0;
-			for (int i = 0; i < probabilities.get(w).getNumCols(); i++) {
-				int sold = Math.min(newState.get(w), i);
-	            individualExpected += (sold) * spec.getSalePrices().get(w) *
-	            		0.6 * probabilities.get(w).get(newState.get(w), i);
-	            
-	            int missed = i - sold;
-	            individualExpected -= missed * spec.getSalePrices().get(w) 
-	            		* 0.25 * probabilities.get(w).get(newState.get(w), i);
-			}
-			totalFortnightReward += individualExpected;
-		}
-			
-		return totalFortnightReward;
-	}
-	
-	public double getReward2(List<Integer> state, List<Integer> action) {
 		List<Integer> newState=sumLists(state,action);
 		if (listElementSum(newState)>this.ventureManager.getMaxManufacturingFunds()) {
 			throw new IllegalArgumentException("Action not Valid for given state at getReward(state,action)");
@@ -422,8 +320,8 @@ public class MySolver implements FundingAllocationAgent {
 			double individualExpected = 0;
 			for (int i = 0; i < probabilities.get(w).getNumCols(); i++) {
 				int sold = Math.min(newState.get(w), i);
-	            individualExpected += (sold) * spec.getSalePrices().get(w) *
-	            		0.6 * probabilities.get(w).get(newState.get(w), i);
+	            //individualExpected += (sold) * spec.getSalePrices().get(w) *
+	            //		0.6 * probabilities.get(w).get(newState.get(w), i);
 	            
 	            int missed = i - sold;
 	            individualExpected -= missed * spec.getSalePrices().get(w) 
@@ -533,17 +431,6 @@ public class MySolver implements FundingAllocationAgent {
 		return mapp;
 	}
 	
-	/**
-	 * Returns hashmap that maps from states to their index
-	 * @return indMap HashMap<int[],Integer>
-	 */
-	private HashMap<List<Integer>,Integer> obtainIndecesMap(){
-		HashMap<List<Integer>,Integer> indMap = new HashMap<List<Integer>,Integer>();
-		for (int i = 0; i<this.states.size(); i++) {
-			indMap.put(states.get(i), i);
-		}
-		return indMap;
-	}
 	
 	/**
 	 * Checks if an action is valid given an state
