@@ -15,9 +15,12 @@ public class MainClass {
 		//System.out.println(mySolver.getOptimalPolicy());
 		for(List<Integer> key : mySolver.getOptimalPolicy().keySet())
 			System.out.println(key + " - " +
-				mySolver.getOptimalPolicy().get(key));		
-		for (List<Integer> state : mySolver.getStates())
-			System.out.println("Fut State: " + state + " Reward: " + mySolver.getfutureRewards().get(state));
-
+				mySolver.getOptimalPolicy().get(key));	
+		int count = 0;
+		for (List<Integer> state : mySolver.getStates()) {
+			count++;
+			System.out.println("Num-" + count + "Fut State: " + state + " Reward: " + mySolver.getfutureRewards().get(state));
+		}
+			
 	}
 }
