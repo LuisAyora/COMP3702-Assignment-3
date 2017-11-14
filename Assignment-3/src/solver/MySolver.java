@@ -27,6 +27,7 @@ public class MySolver implements FundingAllocationAgent {
     private List<List<Integer>> actions;
     private HashMap<List<Integer>, List<Integer>> optimalPolicy;
     private HashMap<List<Integer>,List<Integer>> validActions;
+    private List<List<Double>> rewards;
     private double[] uValueIter;
     private double maxError;
     private double convThreshold;
@@ -39,13 +40,14 @@ public class MySolver implements FundingAllocationAgent {
         states = getCombinations(ventureManager.getMaxManufacturingFunds());
         actions = getCombinations(ventureManager.getMaxAdditionalFunding());
         validActions = obtainValidActions();
-        maxError = 0.1;
+        maxError = 1e-7;
         convThreshold = maxError;//*(1-spec.getDiscountFactor())/spec.getDiscountFactor();
+        rewards = genRewards();
 	}
 	
 	public void doOfflineComputation() {
 	    // TODO Write your own code here.
-		double [] utilities = valIteration();
+		double [] utilities = valueIteration();
 		optimalPolicy = obtainPolicy(utilities);
 		//System.out.println(Arrays.toString(utilities));
 		//optimalPolicy = policyIteration();
@@ -56,15 +58,10 @@ public class MySolver implements FundingAllocationAgent {
 														  int numFortnightsLeft) {
 		// Example code that allocates an additional $10 000 to each venture.
 		// TODO Replace this with your own code.
-		
 
-		/*
-		//int index = indecesMap.get(manufacturingFunds);
-		List<Integer> additionalFunding = optimalPolicyValueIter.get(index);
+		return optimalPolicy.get(manufacturingFunds);
 
-		return additionalFunding;*/
-
-		List<Integer> additionalFunding = new ArrayList<Integer>();
+		/*List<Integer> additionalFunding = new ArrayList<Integer>();
 
 		int totalManufacturingFunds = 0;
 		for (int i : manufacturingFunds) {
@@ -81,9 +78,7 @@ public class MySolver implements FundingAllocationAgent {
 				totalAdditional ++;
 				totalManufacturingFunds ++;
 			}
-		}
-
-		return additionalFunding;
+		}*/
 	}
 	
 	/**
@@ -148,9 +143,9 @@ public class MySolver implements FundingAllocationAgent {
 								uVect[states.indexOf(sDash)];
 					}
 					// Compare utilities and update
-					if(sum > maxVal) {
+					if(sum >= maxVal) {
 						maxVal = sum;
-						uVectDash[states.indexOf(s)] = getReward(s, 
+						uVectDash[states.indexOf(s)] = immediateReward(s, 
 								actions.get(a)) + (spec.getDiscountFactor() *
 								sum);
 					}
@@ -166,7 +161,7 @@ public class MySolver implements FundingAllocationAgent {
 			System.out.println(Arrays.toString(uVectDash));
 			System.out.println("Current delta: " + delta);
 			counter++;
-		} while(counter < 300);// (maxError * (1 - spec.getDiscountFactor())/
+		} while(counter < 2);// (maxError * (1 - spec.getDiscountFactor())/
 				//spec.getDiscountFactor()));
 		return uVect;
 	}
@@ -186,7 +181,7 @@ public class MySolver implements FundingAllocationAgent {
 				for(List<Integer> sDash : states) 
 					sum += transitionFunction(transitions, s, actions.get(a), 
 						sDash) * u[states.indexOf(sDash)];
-				double val = getReward(s, actions.get(a)) + 
+				double val = immediateReward(s, actions.get(a)) + 
 						spec.getDiscountFactor() * sum;
 				if(val > max) {
 					max = val;
@@ -291,7 +286,7 @@ public class MySolver implements FundingAllocationAgent {
 	 * @param a - action
 	 * @return 
 	 */
-	double policyEvaluation(List<Integer> s, List<Integer> a) {
+	public double policyEvaluation(List<Integer> s, List<Integer> a) {
 		double value = 0.0;
 		for(List<Integer> sDash : states) {
 			value += transitionFunction(transitions, s, a, sDash) * 
@@ -528,5 +523,50 @@ public class MySolver implements FundingAllocationAgent {
 	
 	public double[] getUValueIter() {
 		return uValueIter;
+	}
+	
+	public List<Matrix> getTransitions() {
+		return transitions;
+	}
+	
+	public ArrayList<Double> rewardVector(int companyNo) {
+		ArrayList<Double> rewards = new ArrayList<Double>();
+		for(int i = 0; i <
+				spec.getProbabilities().get(0).getNumCols(); i++) {
+			double reward = 0;
+			for(int j = i + 1; j < spec.getProbabilities().get(0).getNumCols();
+					j++) 
+				reward += spec.getProbabilities().get(companyNo).get(i, j) * 
+				          (j - i);
+			rewards.add(reward * -0.25 * 
+					spec.getSalePrices().get(companyNo));
+		}
+		return rewards;
+	}
+	
+	public List<List<Double>> genRewards() {
+		List<List<Double>> rewards = new ArrayList<List<Double>>();
+		for(int i = 0; i < spec.getVentureManager().getNumVentures(); i++)
+			rewards.add(rewardVector(i));
+		return rewards;
+	}
+	
+	public double immediateReward(List<Integer> s, List<Integer> a) {
+		double reward = 0;
+		for(int i = 0; i < s.size(); i++)
+			reward += rewards.get(i).get(s.get(i) + a.get(i));
+		return reward;
+	}
+	
+	// immediateReward method overload
+	public double immediateReward(List<Integer> s) {
+		double reward = 0;
+		for(int i = 0; i < s.size(); i++)
+			reward += rewards.get(i).get(s.get(i));
+		return reward;
+	}
+	
+	public List<List<Double>> getRewardVectors() {
+		return rewards;
 	}
 }
