@@ -16,6 +16,8 @@ public class MainClass {
 		for(List<Integer> key : mySolver.getOptimalPolicy().keySet())
 			System.out.println(key + " - " +
 				mySolver.getOptimalPolicy().get(key));
-			
+		
+		for (List<Integer> state : mySolver.getStates())
+			System.out.println("Fut State: " + state + " Reward: " + mySolver.getfutureRewards().get(state));
 	}
 }

@@ -27,6 +27,7 @@ public class MySolver implements FundingAllocationAgent {
     private List<List<Integer>> actions;
     private HashMap<List<Integer>, List<Integer>> optimalPolicy;
     private HashMap<List<Integer>,List<Integer>> validActions;
+    private HashMap<List<Integer>,Double> futureRewards;
     private double[] uValueIter;
     private double maxError;
     private double convThreshold;
@@ -39,6 +40,7 @@ public class MySolver implements FundingAllocationAgent {
         states = getCombinations(ventureManager.getMaxManufacturingFunds());
         actions = getCombinations(ventureManager.getMaxAdditionalFunding());
         validActions = obtainValidActions();
+        futureRewards = generateRewards();
         maxError = 0.1;
         convThreshold = maxError;//*(1-spec.getDiscountFactor())/spec.getDiscountFactor();
 	}
@@ -402,6 +404,58 @@ public class MySolver implements FundingAllocationAgent {
 		return totalFortnightReward;
 	}
 	
+	public double getReward2(List<Integer> state, List<Integer> action) {
+		List<Integer> newState=sumLists(state,action);
+		if (listElementSum(newState)>this.ventureManager.getMaxManufacturingFunds()) {
+			throw new IllegalArgumentException("Action not Valid for given state at getReward(state,action)");
+		}
+		
+		return this.futureRewards.get(newState);
+		
+	}
+	
+	/**
+	 * Obtains the reward of a state generated after investing
+	 * @param newState state after investing
+	 * @return reward
+	 */
+	public double obtainReward(List<Integer> newState) {
+		double totalFortnightReward = 0;
+		for (int w =0;w<ventureManager.getNumVentures();w++ ) {
+			double individualExpected = 0;
+			for (int i = 0; i < probabilities.get(w).getNumCols(); i++) {
+				int sold = Math.min(newState.get(w), i);
+	            individualExpected += (sold) * spec.getSalePrices().get(w) *
+	            		0.6 * probabilities.get(w).get(newState.get(w), i);
+	            
+	            int missed = i - sold;
+	            individualExpected -= missed * spec.getSalePrices().get(w) 
+	            		* 0.25 * probabilities.get(w).get(newState.get(w), i);
+			}
+			totalFortnightReward += individualExpected;
+		}
+			
+		return totalFortnightReward;
+	}
+	
+	
+	 
+	
+	/**
+	 * generates HashMap of future rewards give the list of states (states after investing)
+	 * @return
+	 */
+	public HashMap<List<Integer>,Double> generateRewards(){
+		HashMap<List<Integer>,Double> futRewards = new HashMap<List<Integer>,Double>();
+		for (List<Integer> state : this.states) {
+			futRewards.put(state,obtainReward(state));
+		}
+		return futRewards;
+		
+	}
+	
+	
+	
 	/**
 	 *  Sums two integer arrays
 	 * @param arr1: first array
@@ -528,5 +582,9 @@ public class MySolver implements FundingAllocationAgent {
 	
 	public double[] getUValueIter() {
 		return uValueIter;
+	}
+	
+	public HashMap<List<Integer>,Double> getfutureRewards(){
+		return futureRewards;
 	}
 }
