@@ -41,6 +41,7 @@ public class MySolver implements FundingAllocationAgent {
         actions = getCombinations(ventureManager.getMaxAdditionalFunding());
         validActions = obtainValidActions();
         futureRewards = generateRewards();
+        uValueIter = this.valueIteration();
         maxError = 0.1;
         convThreshold = maxError;//*(1-spec.getDiscountFactor())/spec.getDiscountFactor();
 	}
@@ -123,7 +124,7 @@ public class MySolver implements FundingAllocationAgent {
 			System.out.println("u: \n"+Arrays.toString(u)+"\n");
 			System.out.println("u: \n"+Arrays.toString(uDash)+"\n");
 			System.out.println("Max Distance : "+Double.toString(dist)+"\n");
-		}while(dist>convThreshold);
+		}while(counter<300);
 		System.out.println("Number Of Iterations till convergence: "+Integer.toString(counter)+"\n");
 		return uDash;
 	}
