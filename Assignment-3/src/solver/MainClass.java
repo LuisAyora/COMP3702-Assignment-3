@@ -9,17 +9,18 @@ import java.util.List;
 public class MainClass {
 	public static void main(String args[]) throws IOException{
 		ProblemSpec probSpec=new ProblemSpec();
-		probSpec.loadInputFile("testcases/platinum_eg1.txt");
+		probSpec.loadInputFile("testcases/platinum1.txt");
 		MySolver mySolver = new MySolver(probSpec);
 		mySolver.doOfflineComputation();
 		//System.out.println(mySolver.getOptimalPolicy());
 		for(List<Integer> key : mySolver.getStates())
 			System.out.println(key + " - " +
 				mySolver.getOptimalPolicy().get(key));	
+		double[] uValIter = mySolver.getUValueIter();
 		int count = 0;
 		for (List<Integer> state : mySolver.getStates()) {
 			count++;
-			System.out.println("Num-" + count + "Fut State: " + state + " Reward: " + mySolver.getfutureRewards().get(state));
+			System.out.println("Num-" + count + "Fut State: " + state + "\tReward: " + mySolver.getfutureRewards().get(state) );
 		}
 			
 	}

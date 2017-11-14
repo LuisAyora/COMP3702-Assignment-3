@@ -27,7 +27,6 @@ public class MySolver implements FundingAllocationAgent {
     private HashMap<List<Integer>, List<Integer>> optimalPolicy;
     private HashMap<List<Integer>,List<Integer>> validActions;
     private HashMap<List<Integer>,Double> futureRewards;
-    private List<List<Double>> rewards;
     private double[] uValueIter;
     private double maxError;
     private double convThreshold;
@@ -43,14 +42,16 @@ public class MySolver implements FundingAllocationAgent {
         futureRewards = generateRewards();
         maxError = 1e-7;
         convThreshold = maxError;//*(1-spec.getDiscountFactor())/spec.getDiscountFactor();
-        rewards = genRewards();
 	}
 	
 	public void doOfflineComputation() {
 	    // TODO Write your own code here.
 		long time = System.currentTimeMillis();
-		double [] utilities = valueIteration();
-		optimalPolicy = obtainPolicy(utilities);
+		//double [] utilities = valueIteration();
+		//optimalPolicy = obtainPolicy(utilities);
+		//uValueIter = utilities;
+		//optimalPolicy = obtainPolicy2();
+		optimalPolicy = policyIteration();
 		time = System.currentTimeMillis() - time;
 		System.out.println("Computation time: " + time);
 
@@ -119,7 +120,7 @@ public class MySolver implements FundingAllocationAgent {
 				for(List<Integer> sDash : states) 
 					sum += transitionFunction(transitions, s, actions.get(a), 
 						sDash) * u[states.indexOf(sDash)];
-				double val = immediateReward(s, actions.get(a)) + 
+				double val = getReward(s, actions.get(a)) + 
 						spec.getDiscountFactor() * sum;
 				if(val > max) {
 					max = val;
@@ -130,41 +131,109 @@ public class MySolver implements FundingAllocationAgent {
 		return optimalPolicy;
 	}
 	
+	public HashMap<List<Integer>, List<Integer>> obtainPolicy2(){
+		HashMap<List<Integer>, List<Integer>> optimalPolicy = new 
+				HashMap<List<Integer>, List<Integer>>();
+		List<Integer> state = new ArrayList<Integer>();
+		List<Integer> action = new ArrayList<Integer>();
+		state.add(0);state.add(0);
+		action.add(0);action.add(3);
+		optimalPolicy.put(state,action);
+
+		state = new ArrayList<Integer>();
+		action = new ArrayList<Integer>();
+		state.add(1);state.add(0);
+		action.add(0);action.add(2);
+		optimalPolicy.put(state,action);
+		
+		state = new ArrayList<Integer>();
+		action = new ArrayList<Integer>();
+		state.add(2);state.add(0);
+		action.add(0);action.add(1);
+		optimalPolicy.put(state,action);
+		
+		state = new ArrayList<Integer>();
+		action = new ArrayList<Integer>();
+		state.add(3);state.add(0);
+		action.add(0);action.add(0);
+		optimalPolicy.put(state,action);
+
+		
+		state = new ArrayList<Integer>();
+		action = new ArrayList<Integer>();
+		state.add(0);state.add(1);
+		action.add(0);action.add(2);
+		optimalPolicy.put(state,action);
+		
+		state = new ArrayList<Integer>();
+		action = new ArrayList<Integer>();
+		state.add(1);state.add(1);
+		action.add(0);action.add(1);
+		optimalPolicy.put(state,action);
+
+		state = new ArrayList<Integer>();
+		action = new ArrayList<Integer>();
+		state.add(2);state.add(1);
+		action.add(0);action.add(0);
+		optimalPolicy.put(state,action);
+		
+		state = new ArrayList<Integer>();
+		action = new ArrayList<Integer>();
+		state.add(0);state.add(2);
+		action.add(0);action.add(1);
+		optimalPolicy.put(state,action);
+		
+		state = new ArrayList<Integer>();
+		action = new ArrayList<Integer>();
+		state.add(1);state.add(2);
+		action.add(0);action.add(0);
+		optimalPolicy.put(state,action);
+		
+		state = new ArrayList<Integer>();
+		action = new ArrayList<Integer>();
+		state.add(0);state.add(3);
+		action.add(0);action.add(0);
+		optimalPolicy.put(state,action);
+		
+		return optimalPolicy;
+	}
+	
 	/**
 	 * Policy Iteration implementation
 	 * @return finalPolicy 
 	 */
 	public HashMap<List<Integer>, List<Integer>> policyIteration() {
-		HashMap<List<Integer>, List<Integer>> finalPolicy = genEmptyPolicy();
+		HashMap<List<Integer>, List<Integer>> pi = genEmptyPolicy();
+		HashMap<List<Integer>, List<Integer>> piDash = genEmptyPolicy();
 		double[] util = genEmptyUtilities();
-		boolean unchanged;
+		double[] utilDash;
+		double dist;
 		do {
-			util = policyEvaluation(finalPolicy, util);
-			unchanged = true;
-			// Iterate over State Space
-			for(List<Integer> s : states) {
-				double sumPi = 0;
-				// Find expected Utility for current policy
-				for(List<Integer> sDash : states)
-					sumPi += transitionFunction(transitions, s, 
-							finalPolicy.get(s), sDash) * 
-					        util[states.indexOf(s)];
-				// Iterate over actions
-				for(int a : validActions.get(s)) {
-					double sumA = 0;
-					// Iterate over State Space
-					for(List<Integer> sDash : states)
-						sumA += transitionFunction(transitions, s, 
-								actions.get(a), sDash) * 
-						        util[states.indexOf(sDash)];
-					if(sumA > sumPi) {
-						finalPolicy.put(s, actions.get(a));
-						unchanged = false;
-					}
-				}
+			utilDash = policyEvaluation(pi,util);
+			piDash = obtainPolicy(util);
+			util = Arrays.copyOf(utilDash, utilDash.length);
+			pi = piDash;
+			dist = vectDist(util,utilDash);
+		} while (dist>convThreshold);
+		return pi;
+	}
+	
+	/**
+	 * Checks if two policies are equal
+	 * @param pi
+	 * @param piDash
+	 * @return
+	 */
+	public boolean policiesEqual(HashMap<List<Integer>,List<Integer>> pi, HashMap<List<Integer>,List<Integer>> piDash) {
+		boolean eq = true;
+		
+		for (List<Integer> key : pi.keySet()) {
+			for (int i = 0 ; i<pi.get(key).size();i++) {
+				if (pi.get(key).get(i)!=piDash.get(key).get(i))
+					return false;
 			}
-		} while (!unchanged);
-		return finalPolicy;
+		}
+		return eq;
 	}
 	
 	public double[] policyEvaluation(HashMap<List<Integer>, List<Integer>> 
@@ -213,8 +282,8 @@ public class MySolver implements FundingAllocationAgent {
 	 */
 	public double[] genEmptyUtilities() {
 		double[] util = new double[states.size()];
-		for(double d : util)
-			d = 0.0;
+		for(int i = 0;i<util.length;i++)
+			util[i] = 0.0;
 		return util;
 	}
 	
@@ -320,8 +389,8 @@ public class MySolver implements FundingAllocationAgent {
 			double individualExpected = 0;
 			for (int i = 0; i < probabilities.get(w).getNumCols(); i++) {
 				int sold = Math.min(newState.get(w), i);
-	            //individualExpected += (sold) * spec.getSalePrices().get(w) *
-	            //		0.6 * probabilities.get(w).get(newState.get(w), i);
+	            individualExpected += (sold) * spec.getSalePrices().get(w) *
+	            		0.6 * probabilities.get(w).get(newState.get(w), i);
 	            
 	            int missed = i - sold;
 	            individualExpected -= missed * spec.getSalePrices().get(w) 
@@ -475,44 +544,4 @@ public class MySolver implements FundingAllocationAgent {
 		return transitions;
 	}
 	
-	public ArrayList<Double> rewardVector(int companyNo) {
-		ArrayList<Double> rewards = new ArrayList<Double>();
-		for(int i = 0; i <
-				spec.getProbabilities().get(0).getNumCols(); i++) {
-			double reward = 0;
-			for(int j = i + 1; j < spec.getProbabilities().get(0).getNumCols();
-					j++) 
-				reward += spec.getProbabilities().get(companyNo).get(i, j) * 
-				          (j - i);
-			rewards.add(reward * -0.25 * 
-					spec.getSalePrices().get(companyNo));
-		}
-		return rewards;
-	}
-	
-	public List<List<Double>> genRewards() {
-		List<List<Double>> rewards = new ArrayList<List<Double>>();
-		for(int i = 0; i < spec.getVentureManager().getNumVentures(); i++)
-			rewards.add(rewardVector(i));
-		return rewards;
-	}
-	
-	public double immediateReward(List<Integer> s, List<Integer> a) {
-		double reward = 0;
-		for(int i = 0; i < s.size(); i++)
-			reward += rewards.get(i).get(s.get(i) + a.get(i));
-		return reward;
-	}
-	
-	// immediateReward method overload
-	public double immediateReward(List<Integer> s) {
-		double reward = 0;
-		for(int i = 0; i < s.size(); i++)
-			reward += rewards.get(i).get(s.get(i));
-		return reward;
-	}
-	
-	public List<List<Double>> getRewardVectors() {
-		return rewards;
-	}
 }
