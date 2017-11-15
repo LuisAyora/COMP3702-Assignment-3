@@ -40,28 +40,19 @@ public class MySolver implements FundingAllocationAgent {
         actions = getCombinations(ventureManager.getMaxAdditionalFunding());
         validActions = obtainValidActions();
         futureRewards = generateRewards();
-        maxError = 1e-7;
+        maxError = 1e-8;
         convThreshold = maxError;//*(1-spec.getDiscountFactor())/spec.getDiscountFactor();
 	}
 	
 	public void doOfflineComputation() {
-	    // TODO Write your own code here.
-		long time = System.currentTimeMillis();
 		//double [] utilities = valueIteration();
 		//optimalPolicy = obtainPolicy(utilities);
-		//uValueIter = utilities;
-		//optimalPolicy = obtainPolicy2();
 		optimalPolicy = policyIteration();
-		time = System.currentTimeMillis() - time;
-		System.out.println("Computation time: " + time);
 
 	}
 	
 	public List<Integer> generateAdditionalFundingAmounts(List<Integer> manufacturingFunds,
 														  int numFortnightsLeft) {
-		// Example code that allocates an additional $10 000 to each venture.
-		// TODO Replace this with your own code.
-
 		return optimalPolicy.get(manufacturingFunds);
 
 	}
@@ -492,9 +483,6 @@ public class MySolver implements FundingAllocationAgent {
 					//System.out.println("Inside Validation if\n");
 					act.add(j);
 			}
-			/*List<Integer> acts = new ArrayList<Integer>();
-			for (int k =0;k<acts.size();k++)
-				acts.add(act.get(k));*/
 			mapp.put(states.get(i),act);
 		}
 		return mapp;
