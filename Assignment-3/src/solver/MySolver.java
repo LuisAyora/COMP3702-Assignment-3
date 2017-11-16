@@ -135,7 +135,7 @@ public class MySolver implements FundingAllocationAgent {
 		double dist;
 		long timePassed;
 		long startTime = System.currentTimeMillis();
-		int counter = 1;
+		//int counter = 1;
 		do {
 			utilDash = policyEvaluation(pi,util);
 			piDash = obtainPolicy(util);
@@ -143,8 +143,8 @@ public class MySolver implements FundingAllocationAgent {
 			util = Arrays.copyOf(utilDash, utilDash.length);
 			pi = piDash;
 			timePassed = System.currentTimeMillis() - startTime;
-			System.out.println("Iterations: "+counter+"\n");
-			counter++;
+			//System.out.println("Iterations: "+counter+"\n");
+			//counter++;
 		} while ((dist>convThreshold)&&(timePassed<30000));
 		return pi;
 	}
