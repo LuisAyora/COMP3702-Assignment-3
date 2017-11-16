@@ -6,7 +6,7 @@ import java.util.List;
 public class MainClass {
 	public static void main(String args[]) throws IOException{
 		ProblemSpec probSpec=new ProblemSpec();
-		probSpec.loadInputFile("testcases/platinum1.txt");
+		probSpec.loadInputFile("testcases/bronze1.txt");
 		MySolver mySolver = new MySolver(probSpec);
 		mySolver.doOfflineComputation();
 		//System.out.println(mySolver.getOptimalPolicy());

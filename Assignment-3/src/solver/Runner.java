@@ -13,7 +13,7 @@ import problem.Simulator;
 
 public class Runner {
 	/** The path for the input file. */
-	private static String inputPath = "testcases/platinum1.txt";
+	private static String inputPath = "testcases/bronze1-hard.txt";
 	/** The path for the output file. */
 	private static String outputPath = "testcases/output.txt";
 	

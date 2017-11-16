@@ -45,8 +45,12 @@ public class MySolver implements FundingAllocationAgent {
 	}
 	
 	public void doOfflineComputation() {
-		//double [] utilities = valueIteration();
-		//optimalPolicy = obtainPolicy(utilities);
+		/*double [] utilities = valueIteration();
+		optimalPolicy = obtainPolicy(utilities);
+		for (int i = 0; i<states.size();i++) {
+			System.out.println("State: "+states.get(i)+"U: "+utilities[i]);
+		}*/
+		
 		optimalPolicy = policyIteration();
 
 	}
@@ -88,9 +92,11 @@ public class MySolver implements FundingAllocationAgent {
 				//Assign maximum to ith state
 			}
 			counter ++;
+			//u=Arrays.copyOf(uDash, uDash.length);
 			dist = vectDist(u,uDash);
 		}while(dist>convThreshold);
-		System.out.println("Number Of Iterations till convergence: "+Integer.toString(counter)+"\n");
+		System.out.println("Number Of Iterations till convergence: "+Integer.toString(counter)+"\n\n");
+		
 		return uDash;
 	}
 	
