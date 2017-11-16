@@ -1,8 +1,5 @@
 package solver;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-
 /**
  * COMP3702 A3 2017 Support Code
  * v1.0
@@ -16,8 +13,7 @@ import problem.Simulator;
 
 public class Runner {
 	/** The path for the input file. */
-	private static String inputPath = "testcases/platinum_eg3.txt";
-	private static String filename = "testcases/platinum_eg3_PolResults.txt";
+	private static String inputPath = "testcases/platinum1.txt";
 	/** The path for the output file. */
 	private static String outputPath = "testcases/output.txt";
 	
@@ -34,61 +30,51 @@ public class Runner {
 	/** Whether to re-create the solver for every simulation. */
 	public static boolean RECREATE_SOLVER = true;
 	
-	private static int numIterations = 100;
 	
 	public static void main(String[] args) throws Exception {
-		
-		BufferedWriter writer = null;
-		writer = new BufferedWriter(new FileWriter(filename));
-		for (int j =0; j<numIterations; j++) {
-			parseCommandLine(args);
-			Class<?> clazz = Class.forName(solverName);
-			Constructor<?> ctor = clazz.getConstructor(ProblemSpec.class);
 
-			ProblemSpec spec = new ProblemSpec(inputPath);
+		parseCommandLine(args);
+		Class<?> clazz = Class.forName(solverName);
+		Constructor<?> ctor = clazz.getConstructor(ProblemSpec.class);
 
-			double totalProfit = 0;
+		ProblemSpec spec = new ProblemSpec(inputPath);
 
-			long time = 0;
+		double totalProfit = 0;
 
-			Simulator simulator = new Simulator(spec);
-			FundingAllocationAgent solver = null;
-			if (!RECREATE_SOLVER) {
-				solver = (FundingAllocationAgent)ctor.newInstance(spec);
-				solver.doOfflineComputation();
+		long time = 0;
 
-			}
-			for (int simNo = 0; simNo < numSimulations; simNo++) {
+		Simulator simulator = new Simulator(spec);
+		FundingAllocationAgent solver = null;
+		if (!RECREATE_SOLVER) {
+			solver = (FundingAllocationAgent) ctor.newInstance(spec);
+			solver.doOfflineComputation();
 
-				System.out.printf("Run #%d\n", simNo+1);
-				System.out.println("-----------------------------------------------------------");
-
-				simulator.reset();
-				if (RECREATE_SOLVER) {
-					solver = (FundingAllocationAgent)ctor.newInstance(spec);
-					time = System.currentTimeMillis();
-					solver.doOfflineComputation();
-					time = System.currentTimeMillis()-time;
-				}
-
-				for (int i = 0; i < spec.getNumFortnights(); i++) {
-					simulator.simulateStep(solver, spec.getNumFortnights() - (i+1));
-				}
-
-				totalProfit += simulator.getTotalProfit();
-				System.out.println("-----------------------------------------------------------");
-			}
-
-			simulator.saveOutput(outputPath);
-			System.out.printf("Summary statistics from %d runs:\n", numSimulations);
-			System.out.println();
-			System.out.printf("Overall profit: %f\n", totalProfit);
-			
-			writer.write(Integer.toString(j+1)+","+Long.toString(time)+","+Double.toString(totalProfit)+"\n");
-			
 		}
-		writer.close();
-		
+		for (int simNo = 0; simNo < numSimulations; simNo++) {
+
+			System.out.printf("Run #%d\n", simNo + 1);
+			System.out.println("-----------------------------------------------------------");
+
+			simulator.reset();
+			if (RECREATE_SOLVER) {
+				solver = (FundingAllocationAgent) ctor.newInstance(spec);
+				time = System.currentTimeMillis();
+				solver.doOfflineComputation();
+				time = System.currentTimeMillis() - time;
+			}
+
+			for (int i = 0; i < spec.getNumFortnights(); i++) {
+				simulator.simulateStep(solver, spec.getNumFortnights() - (i + 1));
+			}
+
+			totalProfit += simulator.getTotalProfit();
+			System.out.println("-----------------------------------------------------------");
+		}
+
+		simulator.saveOutput(outputPath);
+		System.out.printf("Summary statistics from %d runs:\n", numSimulations);
+		System.out.println();
+		System.out.printf("Overall profit: %f\n", totalProfit);
 	}
 	
 	/**

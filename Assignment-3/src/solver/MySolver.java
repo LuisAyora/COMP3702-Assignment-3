@@ -122,72 +122,6 @@ public class MySolver implements FundingAllocationAgent {
 		return optimalPolicy;
 	}
 	
-	public HashMap<List<Integer>, List<Integer>> obtainPolicy2(){
-		HashMap<List<Integer>, List<Integer>> optimalPolicy = new 
-				HashMap<List<Integer>, List<Integer>>();
-		List<Integer> state = new ArrayList<Integer>();
-		List<Integer> action = new ArrayList<Integer>();
-		state.add(0);state.add(0);
-		action.add(0);action.add(3);
-		optimalPolicy.put(state,action);
-
-		state = new ArrayList<Integer>();
-		action = new ArrayList<Integer>();
-		state.add(1);state.add(0);
-		action.add(0);action.add(2);
-		optimalPolicy.put(state,action);
-		
-		state = new ArrayList<Integer>();
-		action = new ArrayList<Integer>();
-		state.add(2);state.add(0);
-		action.add(0);action.add(1);
-		optimalPolicy.put(state,action);
-		
-		state = new ArrayList<Integer>();
-		action = new ArrayList<Integer>();
-		state.add(3);state.add(0);
-		action.add(0);action.add(0);
-		optimalPolicy.put(state,action);
-
-		
-		state = new ArrayList<Integer>();
-		action = new ArrayList<Integer>();
-		state.add(0);state.add(1);
-		action.add(0);action.add(2);
-		optimalPolicy.put(state,action);
-		
-		state = new ArrayList<Integer>();
-		action = new ArrayList<Integer>();
-		state.add(1);state.add(1);
-		action.add(0);action.add(1);
-		optimalPolicy.put(state,action);
-
-		state = new ArrayList<Integer>();
-		action = new ArrayList<Integer>();
-		state.add(2);state.add(1);
-		action.add(0);action.add(0);
-		optimalPolicy.put(state,action);
-		
-		state = new ArrayList<Integer>();
-		action = new ArrayList<Integer>();
-		state.add(0);state.add(2);
-		action.add(0);action.add(1);
-		optimalPolicy.put(state,action);
-		
-		state = new ArrayList<Integer>();
-		action = new ArrayList<Integer>();
-		state.add(1);state.add(2);
-		action.add(0);action.add(0);
-		optimalPolicy.put(state,action);
-		
-		state = new ArrayList<Integer>();
-		action = new ArrayList<Integer>();
-		state.add(0);state.add(3);
-		action.add(0);action.add(0);
-		optimalPolicy.put(state,action);
-		
-		return optimalPolicy;
-	}
 	
 	/**
 	 * Policy Iteration implementation
@@ -199,13 +133,16 @@ public class MySolver implements FundingAllocationAgent {
 		double[] util = genEmptyUtilities();
 		double[] utilDash;
 		double dist;
+		long timePassed;
+		long startTime = System.currentTimeMillis();
 		do {
 			utilDash = policyEvaluation(pi,util);
 			piDash = obtainPolicy(util);
 			util = Arrays.copyOf(utilDash, utilDash.length);
 			pi = piDash;
 			dist = vectDist(util,utilDash);
-		} while (dist>convThreshold);
+			timePassed = System.currentTimeMillis() - startTime;
+		} while ((dist>convThreshold)&&(timePassed<30000));
 		return pi;
 	}
 	
@@ -278,20 +215,7 @@ public class MySolver implements FundingAllocationAgent {
 		return util;
 	}
 	
-	/**
-	 * Evaluate the value of a state, action pair
-	 * @param s - state
-	 * @param a - action
-	 * @return 
-	 */
-	public double policyEvaluation(List<Integer> s, List<Integer> a) {
-		double value = 0.0;
-		for(List<Integer> sDash : states) {
-			value += transitionFunction(transitions, s, a, sDash) * 
-					(spec.getDiscountFactor());
-		}
-		return value;
-	}
+
 	
 	/**
 	 * Obtains Distance as maximum difference
